@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = "MapMetrics"
-  spec.version      = "1.0"
+  spec.version      = "1.0.0"
   spec.summary      = "MapMetrics SDK - A powerful mapping framework"
   spec.description  = "MapMetrics is a powerful tool that provides offline mapping capabilities with custom features."
   spec.homepage     = "https://github.com/hasnattariqusuf/MapMetricsNative-iOS"
@@ -8,7 +8,7 @@ Pod::Spec.new do |spec|
   spec.author       = { "Hasnat Tariq" => "hasnattariqusuf@gmail.com" }
   spec.platform     = :ios, "12.0"
 
-  spec.source = { :git => "https://github.com/hasnattariqusuf/MapMetricsNative-iOS.git", :tag => "1.0" }
+  spec.source = { :git => "https://github.com/hasnattariqusuf/MapMetricsNative-iOS.git", :tag => "1.0.0" }
 
   spec.vendored_frameworks = "MapMetrics.xcframework"
 
