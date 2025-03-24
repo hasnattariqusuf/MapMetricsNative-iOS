@@ -7,6 +7,6 @@ Pod::Spec.new do |spec|
   spec.license      = { :type => "MIT", :file => "LICENSE" }
   spec.author       = { "Hasnat Tariq" => "hasnattariqusuf@gmail.com" }
   spec.platform     = :ios, "12.0"
-  spec.source       = { :git => "https://github.com/hasnattariqusuf/MapMetricsNative-iOS.git", :tag => "1" }
+  spec.source       = { :git => "https://github.com/hasnattariqusuf/MapMetricsNative-iOS.git", :tag => "0.0.2" }
   spec.vendored_frameworks = "MapMetrics.xcframework"
 end
