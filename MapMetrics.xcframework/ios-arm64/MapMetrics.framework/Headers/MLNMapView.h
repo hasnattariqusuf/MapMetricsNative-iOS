@@ -207,6 +207,11 @@ MLN_EXPORT
  */
 - (instancetype)initWithFrame:(CGRect)frame styleURL:(nullable NSURL *)styleURL;
 
+//- TODO: initialize an ``MLNMapView`` with a custom style
+//- TODO: how to initialize an ``MLNMapView`` with a third-party tile source
+
+- (instancetype)initWithFrame:(CGRect)frame isDarkMode:(BOOL)isDarkMode;
+
 // MARK: Accessing the Delegate
 
 /**
