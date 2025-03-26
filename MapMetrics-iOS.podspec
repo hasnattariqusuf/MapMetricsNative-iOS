@@ -1,33 +1,35 @@
 Pod::Spec.new do |spec|
-  spec.name         = "MapMetrics"  # Must match filename (MapMetrics.podspec)
+  spec.name         = "MapMetrics-iOS"
   spec.version      = "0.0.1"
   spec.summary      = "MapMetrics SDK - A powerful mapping framework"
-  spec.description  = "MapMetrics is a powerful tool that provides offline mapping capabilities with custom features."
+  spec.description  = MapMetrics provides advanced offline mapping capabilities
+                      with custom features for iOS applications.
+                      DESC
   spec.homepage     = "https://github.com/MapMetrics/MapMetrics-iOS"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
   spec.author       = { "MapMetrics" => "jack@mapmetrics.org" }
   spec.platform     = :ios, "12.0"
-  spec.swift_version = "5.0"  # Added Swift version
-    
-  spec.source = {
+  spec.swift_version = "5.0"
+  
+  spec.source       = {
     :git => "https://github.com/MapMetrics/MapMetrics-iOS.git",
     :tag => spec.version.to_s
   }
 
   spec.vendored_frameworks = "MapMetrics.xcframework"
-  spec.preserve_paths = "MapMetrics.xcframework"
+  spec.preserve_paths      = "MapMetrics.xcframework"
   
   spec.exclude_files = [
-    '**/.DS_Store',
-    '**/bazel-out',
-    '**/*.lproj'
+    "**/.DS_Store",
+    "**/bazel-out",
+    "**/*.lproj"
   ]
 
   spec.pod_target_xcconfig = {
     "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "arm64",
-    "OTHER_LDFLAGS" => "-framework MapMetrics",
+    "OTHER_LDFLAGS" => "-framework MapMetrics-iOS",
     "LD_RUNPATH_SEARCH_PATHS" => "@executable_path/Frameworks",
-    "ENABLE_USER_SCRIPT_SANDBOXING" => "NO"  # Added sandbox fix
+    "ENABLE_USER_SCRIPT_SANDBOXING" => "NO"
   }
   
   spec.user_target_xcconfig = {
