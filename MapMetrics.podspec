@@ -1,5 +1,5 @@
 Pod::Spec.new do |spec|
-  spec.name         = "MapMetrics-iOS"
+  spec.name         = "MapMetrics"
   spec.version      = "0.0.1"
   spec.summary      = "MapMetrics SDK - A powerful mapping framework"
   spec.description  = "MapMetrics is a powerful tool that provides offline mapping capabilities with custom features."
