@@ -8,7 +8,7 @@ Add this to your Podfile:
 target 'YourApp' do  
   pod 'MapMetrics', '~> 0.0.1'  # Use the latest version  
   # OR
-  pod 'MapMetrics', :git => 'https://github.com/hasnattariqusuf/MapMetrics-iOS.git', :tag => '0.0.1'
+  pod 'MapMetrics', :git => 'https://github.com/MapMetrics/MapMetrics-iOS', :tag => '0.0.1'
 end
 ```
 
@@ -118,7 +118,7 @@ platform :ios, '12.0'
 
 target 'YourApp' do  
   use_frameworks!  
-  pod 'MapMetrics', '~> 0.0.2'  
+  pod 'MapMetrics', '~> 0.0.1'  
 
   post_install do |installer|  
     installer.pods_project.targets.each do |target|  
