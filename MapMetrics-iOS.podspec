@@ -2,7 +2,8 @@ Pod::Spec.new do |spec|
   spec.name         = "MapMetrics-iOS"
   spec.version      = "0.0.1"
   spec.summary      = "MapMetrics SDK - A powerful mapping framework"
-  spec.description  = MapMetrics provides advanced offline mapping capabilities
+  spec.description  = <<-DESC
+                      MapMetrics provides advanced offline mapping capabilities
                       with custom features for iOS applications.
                       DESC
   spec.homepage     = "https://github.com/MapMetrics/MapMetrics-iOS"
@@ -27,7 +28,7 @@ Pod::Spec.new do |spec|
 
   spec.pod_target_xcconfig = {
     "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "arm64",
-    "OTHER_LDFLAGS" => "-framework MapMetrics-iOS",
+    "OTHER_LDFLAGS" => "-framework MapMetrics",
     "LD_RUNPATH_SEARCH_PATHS" => "@executable_path/Frameworks",
     "ENABLE_USER_SCRIPT_SANDBOXING" => "NO"
   }
