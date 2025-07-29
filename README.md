@@ -194,3 +194,183 @@ Use a `UISegmentedControl` to toggle visibility of layers:
 For questions or improvements, reach out to your SDK maintainer.
 
 Happy Mapping! 🗺️
+
+
+
+
+
+
+# MapMetrics iOS Demo App Tutorial
+
+This guide walks you through using **MapMetrics-iOS** to build an interactive map with:
+
+- Tap-to-add Markers
+- Marker Info Editing
+- Clustered Data View
+- Heatmap View
+- Toggle Controls
+
+---
+
+## 📦 Installation (CocoaPods)
+
+Add this to your `Podfile`:
+
+```ruby
+platform :ios, '12.0'  
+
+target 'YourApp' do  
+  use_frameworks!  
+  pod 'MapMetrics-iOS', '~> 0.0.1'  
+
+  post_install do |installer|  
+    installer.pods_project.targets.each do |target|  
+      target.build_configurations.each do |config|  
+        config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'  
+      end  
+    end  
+  end  
+end  
+```
+
+Then run:
+
+```bash
+pod install
+```
+
+---
+
+## 🛠 Required Build Settings (Sandbox Fix)
+
+To prevent `rsync.samba deny(1)` errors, disable sandboxing:
+
+### Option A: Automatic via Podfile  
+Included above in the `post_install` block.
+
+### Option B: Manual via Xcode  
+
+1. Open your project in **Xcode**  
+2. Select your **Target → Build Settings**  
+3. Search: `ENABLE_USER_SCRIPT_SANDBOXING`  
+4. Set it to `NO` for all configurations.
+
+---
+
+## ✅ Verify Installation
+
+Import into your code:
+
+```swift
+import MapMetrics
+```
+
+If any issues persist:
+
+```bash
+rm -rf ~/Library/Developer/Xcode/DerivedData/*
+```
+
+---
+
+## 📍 Full Demo Code (ViewController.swift)
+
+```swift
+import UIKit
+import MapMetrics
+
+class ViewController: UIViewController, MLNMapViewDelegate {
+    var mapView: MLNMapView!
+    var infoView: UIView!
+    var textField: UITextField!
+    var selectedAnnotation: MLNPointAnnotation?
+    var isMarkerSelected = false
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let styleURL = URL(string: "https://demotiles.maplibre.org/style.json")!
+        mapView = MLNMapView(frame: view.bounds, styleURL: styleURL)
+        mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        mapView.delegate = self
+        view.addSubview(mapView)
+
+        mapView.setCenter(CLLocationCoordinate2D(latitude: 35.0, longitude: 45.0), zoomLevel: 5, animated: false)
+        mapView.showsUserLocation = true
+        mapView.showsScale = true
+        mapView.showsCompass = true
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
+        mapView.addGestureRecognizer(tapGesture)
+
+        setupInfoView()
+    }
+
+    @objc func handleMapTap(_ gesture: UITapGestureRecognizer) {
+        let point = gesture.location(in: mapView)
+        let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
+
+        if isMarkerSelected {
+            if let selected = selectedAnnotation {
+                selected.coordinate = coordinate
+                mapView.removeAnnotation(selected)
+                mapView.addAnnotation(selected)
+                isMarkerSelected = false
+                infoView.isHidden = true
+            }
+        } else {
+            let annotation = MLNPointAnnotation()
+            annotation.coordinate = coordinate
+            annotation.title = "Custom Marker"
+            mapView.addAnnotation(annotation)
+        }
+    }
+
+    func mapView(_ mapView: MLNMapView, didSelect annotation: MLNAnnotation) {
+        if let pointAnnotation = annotation as? MLNPointAnnotation {
+            selectedAnnotation = pointAnnotation
+            textField.text = pointAnnotation.title
+            infoView.isHidden = false
+            isMarkerSelected = true
+        }
+    }
+
+    func mapView(_ mapView: MLNMapView, imageFor annotation: MLNAnnotation) -> MLNAnnotationImage? {
+        let identifier = "customMarker"
+        if let image = mapView.dequeueReusableAnnotationImage(withIdentifier: identifier) {
+            return image
+        } else {
+            let image = UIImage(named: "marker_icon")!
+            return MLNAnnotationImage(image: image, reuseIdentifier: identifier)
+        }
+    }
+
+    func setupInfoView() {
+        infoView = UIView(frame: CGRect(x: 10, y: view.frame.height - 100, width: view.frame.width - 20, height: 80))
+        infoView.backgroundColor = .white
+        infoView.layer.cornerRadius = 8
+        infoView.isHidden = true
+        view.addSubview(infoView)
+
+        textField = UITextField(frame: CGRect(x: 10, y: 10, width: infoView.frame.width - 20, height: 30))
+        textField.borderStyle = .roundedRect
+        infoView.addSubview(textField)
+
+        let saveButton = UIButton(frame: CGRect(x: 10, y: 45, width: infoView.frame.width - 20, height: 25))
+        saveButton.setTitle("Save Title", for: .normal)
+        saveButton.setTitleColor(.systemBlue, for: .normal)
+        saveButton.addTarget(self, action: #selector(updateAnnotationTitle), for: .touchUpInside)
+        infoView.addSubview(saveButton)
+    }
+
+    @objc func updateAnnotationTitle() {
+        if let selected = selectedAnnotation {
+            selected.title = textField.text
+            mapView.removeAnnotation(selected)
+            mapView.addAnnotation(selected)
+            infoView.isHidden = true
+            isMarkerSelected = false
+        }
+    }
+}
+```
