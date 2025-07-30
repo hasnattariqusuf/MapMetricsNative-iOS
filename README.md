@@ -1,376 +1,103 @@
-# 📍 MapMetrics iOS Integration Guide
+Here's a downloadable Markdown file (MapMetrics_Integration_Guide.md) with the complete integration guide:
 
-This guide explains how to integrate **Heatmaps**, **Clusters**, and **Markers** using the **MapMetrics (MapLibre Native)** SDK in your iOS app.
+markdown
+# MapMetrics iOS SDK Integration Guide
 
----
+## Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Initial Setup](#initial-setup)
+3. [Adding Markers](#adding-markers)  
+   - [Basic Implementation](#basic-marker-implementation)
+   - [Customization](#customize-marker-appearance)
+   - [Selection Handling](#marker-selection-and-info-view)
+4. [Heatmap Implementation](#heatmap-implementation)
+5. [Cluster Implementation](#cluster-implementation)
+6. [Troubleshooting](#troubleshooting)
 
-## 🚀 1. Initial Setup
+## Prerequisites
+- Xcode 13+
+- iOS 15+ deployment target
+- Valid MapMetrics API token
+- CocoaPods
 
-1. **Import the SDK**:
-
-   ```swift
-   import MapMetrics
-   ```
-
-2. **Create a `MLNMapView` instance**:
-
-   ```swift
-   mapView = MLNMapView(frame: view.bounds,
-                        styleURL: URL(string: "https://demotiles.maplibre.org/style.json"))
-   mapView.delegate = self
-   view.addSubview(mapView)
-   ```
-
----
-
-## 🔥 2. Add Heatmap Layer
-
-### ✅ Step-by-Step:
-
-1. **Remove existing heatmap source and layer (if any):**
-
-   ```swift
-   if let existingSource = style.source(withIdentifier: "earthquakes") {
-       style.removeSource(existingSource)
-   }
-   if let existingLayer = style.layer(withIdentifier: "earthquakes-heat") {
-       style.removeLayer(existingLayer)
-   }
-   ```
-
-2. **Create the heatmap source:**
-
-   ```swift
-   let url = URL(string: "https://maplibre.org/maplibre-gl-js/docs/assets/earthquakes.geojson")!
-   let source = try MLNShapeSource(identifier: "earthquakes", url: url, options: [.clustered: false])
-   try style.addSource(source)
-   ```
-
-3. **Configure the heatmap layer:**
-
-   ```swift
-   let heatmap = MLNHeatmapStyleLayer(identifier: "earthquakes-heat", source: source)
-   heatmap.heatmapWeight = ... // based on mag
-   heatmap.heatmapIntensity = ... // based on zoom
-   heatmap.heatmapColor = ... // gradient from blue to red
-   heatmap.heatmapRadius = ...
-   heatmap.heatmapOpacity = NSExpression(forConstantValue: 0.8)
-   heatmap.isVisible = false
-
-   try style.addLayer(heatmap)
-   ```
-
-4. **Optional:** Insert layer above water if needed.
-
----
-
-## 🌐 3. Add Clusters
-
-### ✅ Step-by-Step:
-
-1. **Create a clustered shape source:**
-
-   ```swift
-   let source = try MLNShapeSource(
-       identifier: "clusteredEarthquakes",
-       url: URL(string: "https://maplibre.org/maplibre-gl-js/docs/assets/earthquakes.geojson")!,
-       options: [.clustered: true, .clusterRadius: 30]
-   )
-   try style.addSource(source)
-   ```
-
-2. **Add unclustered points layer:**
-
-   ```swift
-   let unclustered = MLNCircleStyleLayer(identifier: "earthquake-circles", source: source)
-   unclustered.predicate = NSPredicate(format: "cluster != YES")
-   unclustered.circleColor = NSExpression(forConstantValue: UIColor.red)
-   ...
-   try style.addLayer(unclustered)
-   ```
-
-3. **Add clusters layer:**
-
-   ```swift
-   let clusters = MLNCircleStyleLayer(identifier: "clusters", source: source)
-   clusters.predicate = NSPredicate(format: "cluster == YES")
-   clusters.circleColor = NSExpression(forConstantValue: UIColor.blue)
-   ...
-   try style.addLayer(clusters)
-   ```
-
-4. **Add cluster labels:**
-
-   ```swift
-   let labels = MLNSymbolStyleLayer(identifier: "cluster-labels", source: source)
-   labels.text = NSExpression(format: "CAST(point_count, 'NSString')")
-   ...
-   try style.addLayer(labels)
-   ```
-
----
-
-## 📌 4. Add Custom Markers with Editable Labels
-
-### ✅ Tap to Add:
-
+## Initial Setup
 ```swift
-@objc func mapTapped(_ sender: UITapGestureRecognizer) {
-    guard !isMarkerSelected else { return }
-    let location = sender.location(in: mapView)
-    let coordinates = mapView.convert(location, toCoordinateFrom: mapView)
-    addMarker(at: coordinates)
-}
+// Podfile
+pod 'MapMetrics'
 
-func addMarker(at coordinates: CLLocationCoordinate2D) {
-    let marker = MLNPointAnnotation()
-    marker.coordinate = coordinates
-    marker.title = "Tap to add a name"
-    mapView.addAnnotation(marker)
-}
-```
-
-### ✅ Marker Selection:
-
-```swift
-func mapView(_ mapView: MLNMapView, didSelect annotation: MLNAnnotation) {
-    if let point = annotation as? MLNPointAnnotation {
-        isMarkerSelected = true
-        selectedAnnotation = point
-        showInfoView(for: point)
-    }
-}
-```
-
-### ✅ Edit Title View:
-
-* Use a bottom sheet or a popup (`UIView`) with `UITextField` to change the marker title.
-* Update annotation title on `textFieldShouldReturn`.
-
----
-
-## 🎮 Toggle Layers (Markers / Clusters / Heatmap)
-
-Use a `UISegmentedControl` to toggle visibility of layers:
-
-```swift
-@objc func toggleMapView(_ sender: UISegmentedControl) {
-    let heatmapLayer = style.layer(withIdentifier: "earthquakes-heat")
-    let clustersLayer = style.layer(withIdentifier: "clusters")
-    let clusterLabelsLayer = style.layer(withIdentifier: "cluster-labels")
-    let circlesLayer = style.layer(withIdentifier: "earthquake-circles")
-
-    switch sender.selectedSegmentIndex {
-    case 0: // Markers
-        ...
-    case 1: // Clusters
-        ...
-    case 2: // Heatmap
-        ...
-    default: break
-    }
-}
-```
-
----
-
-## ✅ Summary
-
-| Feature  | Layers                       | Source Identifier      |
-| -------- | ---------------------------- | ---------------------- |
-| Heatmap  | `earthquakes-heat`           | `earthquakes`          |
-| Clusters | `clusters`, `cluster-labels` | `clusteredEarthquakes` |
-| Markers  | `earthquake-circles`         | `clusteredEarthquakes` |
-
----
-
-## 🧪 Testing Tips
-
-* Use `debugLayers()` to print active layers.
-* Use `verifyDataSource()` to inspect sources and shapes.
-
----
-
-For questions or improvements, reach out to your SDK maintainer.
-
-Happy Mapping! 🗺️
-
-
-
-
-
-
-# MapMetrics iOS Demo App Tutorial
-
-This guide walks you through using **MapMetrics-iOS** to build an interactive map with:
-
-- Tap-to-add Markers
-- Marker Info Editing
-- Clustered Data View
-- Heatmap View
-- Toggle Controls
-
----
-
-## 📦 Installation (CocoaPods)
-
-Add this to your `Podfile`:
-
-```ruby
-platform :ios, '12.0'  
-
-target 'YourApp' do  
-  use_frameworks!  
-  pod 'MapMetrics-iOS', '~> 0.0.1'  
-
-  post_install do |installer|  
-    installer.pods_project.targets.each do |target|  
-      target.build_configurations.each do |config|  
-        config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'  
-      end  
-    end  
-  end  
-end  
-```
-
-Then run:
-
-```bash
-pod install
-```
-
----
-
-## 🛠 Required Build Settings (Sandbox Fix)
-
-To prevent `rsync.samba deny(1)` errors, disable sandboxing:
-
-### Option A: Automatic via Podfile  
-Included above in the `post_install` block.
-
-### Option B: Manual via Xcode  
-
-1. Open your project in **Xcode**  
-2. Select your **Target → Build Settings**  
-3. Search: `ENABLE_USER_SCRIPT_SANDBOXING`  
-4. Set it to `NO` for all configurations.
-
----
-
-## ✅ Verify Installation
-
-Import into your code:
-
-```swift
-import MapMetrics
-```
-
-If any issues persist:
-
-```bash
-rm -rf ~/Library/Developer/Xcode/DerivedData/*
-```
-
----
-
-## 📍 Full Demo Code (ViewController.swift)
-
-```swift
-import UIKit
+// ViewController.swift
 import MapMetrics
 
-class ViewController: UIViewController, MLNMapViewDelegate {
+class ViewController: UIViewController {
     var mapView: MLNMapView!
-    var infoView: UIView!
-    var textField: UITextField!
-    var selectedAnnotation: MLNPointAnnotation?
-    var isMarkerSelected = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        let styleURL = URL(string: "https://demotiles.maplibre.org/style.json")!
-        mapView = MLNMapView(frame: view.bounds, styleURL: styleURL)
-        mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        mapView = MLNMapView(
+            frame: view.bounds,
+            styleURL: URL(string: "https://gateway.mapmetrics-atlas.net/styles/?fileName=YOUR_STYLE_ID/portal.json&token=YOUR_TOKEN")
+        )
         mapView.delegate = self
         view.addSubview(mapView)
-
-        mapView.setCenter(CLLocationCoordinate2D(latitude: 35.0, longitude: 45.0), zoomLevel: 5, animated: false)
-        mapView.showsUserLocation = true
-        mapView.showsScale = true
-        mapView.showsCompass = true
-
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleMapTap(_:)))
-        mapView.addGestureRecognizer(tapGesture)
-
-        setupInfoView()
-    }
-
-    @objc func handleMapTap(_ gesture: UITapGestureRecognizer) {
-        let point = gesture.location(in: mapView)
-        let coordinate = mapView.convert(point, toCoordinateFrom: mapView)
-
-        if isMarkerSelected {
-            if let selected = selectedAnnotation {
-                selected.coordinate = coordinate
-                mapView.removeAnnotation(selected)
-                mapView.addAnnotation(selected)
-                isMarkerSelected = false
-                infoView.isHidden = true
-            }
-        } else {
-            let annotation = MLNPointAnnotation()
-            annotation.coordinate = coordinate
-            annotation.title = "Custom Marker"
-            mapView.addAnnotation(annotation)
-        }
-    }
-
-    func mapView(_ mapView: MLNMapView, didSelect annotation: MLNAnnotation) {
-        if let pointAnnotation = annotation as? MLNPointAnnotation {
-            selectedAnnotation = pointAnnotation
-            textField.text = pointAnnotation.title
-            infoView.isHidden = false
-            isMarkerSelected = true
-        }
-    }
-
-    func mapView(_ mapView: MLNMapView, imageFor annotation: MLNAnnotation) -> MLNAnnotationImage? {
-        let identifier = "customMarker"
-        if let image = mapView.dequeueReusableAnnotationImage(withIdentifier: identifier) {
-            return image
-        } else {
-            let image = UIImage(named: "marker_icon")!
-            return MLNAnnotationImage(image: image, reuseIdentifier: identifier)
-        }
-    }
-
-    func setupInfoView() {
-        infoView = UIView(frame: CGRect(x: 10, y: view.frame.height - 100, width: view.frame.width - 20, height: 80))
-        infoView.backgroundColor = .white
-        infoView.layer.cornerRadius = 8
-        infoView.isHidden = true
-        view.addSubview(infoView)
-
-        textField = UITextField(frame: CGRect(x: 10, y: 10, width: infoView.frame.width - 20, height: 30))
-        textField.borderStyle = .roundedRect
-        infoView.addSubview(textField)
-
-        let saveButton = UIButton(frame: CGRect(x: 10, y: 45, width: infoView.frame.width - 20, height: 25))
-        saveButton.setTitle("Save Title", for: .normal)
-        saveButton.setTitleColor(.systemBlue, for: .normal)
-        saveButton.addTarget(self, action: #selector(updateAnnotationTitle), for: .touchUpInside)
-        infoView.addSubview(saveButton)
-    }
-
-    @objc func updateAnnotationTitle() {
-        if let selected = selectedAnnotation {
-            selected.title = textField.text
-            mapView.removeAnnotation(selected)
-            mapView.addAnnotation(selected)
-            infoView.isHidden = true
-            isMarkerSelected = false
-        }
     }
 }
-```
+Adding Markers
+
+Basic Implementation
+
+swift
+@objc func mapTapped(_ sender: UITapGestureRecognizer) {
+    let coordinates = mapView.convert(sender.location(in: mapView), toCoordinateFrom: mapView)
+    let marker = MLNPointAnnotation()
+    marker.coordinate = coordinates
+    mapView.addAnnotation(marker)
+}
+Customize Appearance
+
+swift
+func mapView(_ mapView: MLNMapView, viewFor annotation: MLNAnnotation) -> MLNAnnotationView? {
+    let view = MLNAnnotationView(annotation: annotation, reuseIdentifier: "marker")
+    view.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
+    view.backgroundColor = .systemBlue
+    return view
+}
+Heatmap Implementation
+
+swift
+let source = MLNShapeSource(
+    identifier: "heatmap-data",
+    url: URL(string: "https://your-data.geojson")!,
+    options: [.clustered: false]
+)
+
+let heatmap = MLNHeatmapStyleLayer(identifier: "heatmap", source: source)
+heatmap.heatmapWeight = NSExpression(
+    forMLNInterpolating: NSExpression(forKeyPath: "intensity"),
+    curveType: .exponential,
+    parameters: NSExpression(forConstantValue: 1.5),
+    stops: NSExpression(forConstantValue: [0: 0, 5: 1])
+)
+mapView.style?.addLayer(heatmap)
+Cluster Implementation
+
+swift
+let source = MLNShapeSource(
+    identifier: "clusters",
+    url: URL(string: "https://your-data.geojson")!,
+    options: [
+        .clustered: true,
+        .clusterRadius: 30
+    ]
+)
+
+// Cluster circles
+let circles = MLNCircleStyleLayer(identifier: "clusters", source: source)
+circles.circleColor = .systemTeal
+circles.predicate = NSPredicate(format: "cluster == YES")
+mapView.style?.addLayer(circles)
+Troubleshooting
+
+Issue	Solution
+Map not loading	Verify API token and network connection
+Markers invisible	Check delegate assignment and main thread
+Heatmap blank	Validate data structure and zoom levels
